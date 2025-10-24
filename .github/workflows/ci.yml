@@ -27,9 +27,9 @@ jobs:
       - name: Install uv and pytest
         run: pip install uv pytest pytest-cov
 
-      - name: Install dependencies (no local project)
+      - name: Install dependencies + dev groups (no local project)
         run: |
-          uv export --format requirements-txt \
+          uv export --format requirements-txt --group default --group dev \
           | grep -vE '^-e[[:space:]]+\.$' \
           | uv pip sync --system -
 
