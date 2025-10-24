@@ -69,3 +69,42 @@ jobs:
         run: |
           echo "✅ Deploying to Hugging Face (placeholder)"
           echo "Using token: ${HF_TOKEN:0:6}***"
+
+  deploy-gradio:
+    needs: test
+    if: github.ref == 'refs/heads/main' && success()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install HF CLI
+        run: |
+          python -m pip install --upgrade "huggingface_hub[cli]>=0.23.2"
+
+      - name: Login to Hugging Face (non-interactive)
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }} # added in GitHub: Settings → Secrets → Actions
+        run: |
+          hf auth login --token "$HF_TOKEN" --add-to-git-credential
+
+      - name: Ensure Space exists (Gradio)
+        env:
+          HF_USER: ghislaindelabie
+          SPACE: oc5-ml-gradio
+        run: |
+          # --yes is supported on recent CLI; if it ever fails, replace with: yes | hf repo create ...
+          hf repo create "$HF_USER/$SPACE" --repo-type space --space-sdk gradio --private --yes || true
+
+      - name: Upload gradio_app/ to Space root
+        env:
+          HF_USER: ghislaindelabie
+          SPACE: oc5-ml-gradio
+        run: |
+          # Positional-args syntax: repo_id  local_path  path_in_repo
+          hf upload "$HF_USER/$SPACE" gradio_app . --repo-type space
+          echo "✅ Deployed gradio_app to $HF_USER/$SPACE"
