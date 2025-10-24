@@ -1,0 +1,17 @@
+
+# OS / editors
+.DS_Store
+.vscode/
+.idea/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.env
+.env.*
+
+# Data / models (we'll decide later if we use Git LFS)
+data/
+model/*.pkl
+model/*.joblib

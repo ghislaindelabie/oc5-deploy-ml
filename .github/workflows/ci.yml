@@ -1,0 +1,71 @@
+name: CI/CD
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+jobs:
+  test:
+    name: Run tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install heavy scientific stack for CI
+        run: |
+          python -m pip install --upgrade pip
+          pip install "numpy==2.3.*" "pandas==2.2.*" "scikit-learn==1.5.*"
+
+      - name: Install uv and pytest
+        run: pip install uv pytest pytest-cov
+
+      - name: Install dependencies + dev groups (no local project)
+        run: |
+          uv export --format requirements-txt --group default --group dev \
+          | grep -vE '^-e[[:space:]]+\.$' \
+          | uv pip sync --system -
+
+      - name: Install project (editable)
+        run: python -m pip install -e .
+
+      - name: Run tests
+        env:
+          APP_ENV: test
+        run: |
+          pytest -q --maxfail=1 --disable-warnings --cov=src/oc5_ml_deployment \
+          --cov-report=term-missing \
+          --cov-report=html \
+          --cov-report=xml
+
+      - name: Upload HTML coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-html
+          path: ./htmlcov
+          retention-days: 7
+
+  deploy:
+    name: Deploy (placeholder)
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' # only deploy on push, not PRs (optional)
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Echo deploy placeholder
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          APP_ENV: prod
+        run: |
+          echo "✅ Deploying to Hugging Face (placeholder)"
+          echo "Using token: ${HF_TOKEN:0:6}***"
