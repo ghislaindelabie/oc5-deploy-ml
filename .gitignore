@@ -21,3 +21,9 @@ model/*.joblib
 coverage.xml
 htmlcov/
 hello.txt
+
+# test artifacts
+.coverage
+coverage.xml
+htmlcov/
+hello.txt
