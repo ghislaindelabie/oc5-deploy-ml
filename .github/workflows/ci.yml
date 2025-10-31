@@ -77,34 +77,43 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - id: check_gradio
+        name: Check gradio_app presence
+        run: |
+          if [ -d gradio_app ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Set up Python
+        if: steps.check_gradio.outputs.present == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
       - name: Install HF CLI
-        run: |
-          python -m pip install --upgrade "huggingface_hub[cli]>=0.23.2"
+        if: steps.check_gradio.outputs.present == 'true'
+        run: python -m pip install --upgrade "huggingface_hub[cli]>=0.23.2"
 
       - name: Login to Hugging Face (non-interactive)
+        if: steps.check_gradio.outputs.present == 'true'
         env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }} # added in GitHub: Settings → Secrets → Actions
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          hf auth login --token "$HF_TOKEN" --add-to-git-credential
+          hf auth login --token "$HF_TOKEN" --add-to-git-credential || true
 
       - name: Ensure Space exists (Gradio)
+        if: steps.check_gradio.outputs.present == 'true'
         env:
           HF_USER: ghislaindelabie
           SPACE: oc5-ml-gradio
         run: |
-          # --yes is supported on recent CLI; if it ever fails, replace with: yes | hf repo create ...
           hf repo create "$HF_USER/$SPACE" --repo-type space --space-sdk gradio --private --yes || true
 
       - name: Upload gradio_app/ to Space root
+        if: steps.check_gradio.outputs.present == 'true'
         env:
           HF_USER: ghislaindelabie
           SPACE: oc5-ml-gradio
-        run: |
-          # Positional-args syntax: repo_id  local_path  path_in_repo
-          hf upload "$HF_USER/$SPACE" gradio_app . --repo-type space
-          echo "✅ Deployed gradio_app to $HF_USER/$SPACE"
+        run: hf upload "$HF_USER/$SPACE" gradio_app . --repo-type space
