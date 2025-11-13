@@ -1,0 +1,42 @@
+======================================================================
+HR ATTRITION MODEL - TRAINING REPORT
+======================================================================
+
+Training Date: 2025-11-13 23:27:36
+Model Version: xgb_enhanced_v1.0
+
+DATASET
+----------------------------------------------------------------------
+Total Samples: 1470
+Features (raw): 31
+Features (encoded): 40
+Class 0 (Stayed): 1233 (83.9%)
+Class 1 (Left): 237 (16.1%)
+
+CROSS-VALIDATION RESULTS (5-fold)
+----------------------------------------------------------------------
+Accuracy:    0.872 ± 0.010
+Precision:   0.688 ± 0.045
+Recall:      0.384 ± 0.076
+F1-Score:    0.488 ± 0.066
+ROC AUC:     0.834 ± 0.022
+PR AUC:      0.600 ± 0.025
+
+HYPERPARAMETERS
+----------------------------------------------------------------------
+n_estimators: 200
+learning_rate: 0.1
+max_depth: 7
+min_child_weight: 3
+subsample: 0.7
+colsample_bytree: 1.0
+reg_alpha: 1
+reg_lambda: 5
+scale_pos_weight: 1.0
+random_state: 42
+
+FILES GENERATED
+----------------------------------------------------------------------
+Model: hr_attrition_xgb_enhanced.joblib
+Metadata: feature_metadata.json
+Report: training_report.txt
