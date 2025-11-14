@@ -418,3 +418,69 @@ class TestPerformance:
 
         prediction_time = data["metadata"]["prediction_time_ms"]
         assert prediction_time < 5000  # 10 predictions should complete in under 5 seconds
+
+
+# ===== Root Endpoint Tests =====
+
+
+class TestRootEndpoint:
+    """Tests for the landing page endpoint."""
+
+    def test_root_returns_200(self, client):
+        """Root endpoint should return 200."""
+        response = client.get("/")
+        assert response.status_code == 200
+
+    def test_root_returns_html(self, client):
+        """Root endpoint should return HTML content."""
+        response = client.get("/")
+        assert response.status_code == 200
+        assert "text/html" in response.headers["content-type"]
+
+    def test_root_contains_key_elements(self, client):
+        """Landing page should contain key information."""
+        response = client.get("/")
+        content = response.text
+
+        # Check for main heading and branding
+        assert "HR Attrition Prediction API" in content
+
+        # Check for all endpoint links
+        assert "/health" in content
+        assert "/api/v1/model/info" in content
+        assert "/api/v1/predict" in content
+        assert "/api/v1/predict/batch" in content
+
+        # Check for documentation links
+        assert "/docs" in content
+        assert "/redoc" in content
+
+        # Check for GitHub link
+        assert "github.com/ghislaindelabie/oc5-deploy-ml" in content
+
+    def test_root_has_cache_headers(self, client):
+        """Root endpoint should include caching headers."""
+        response = client.get("/")
+        assert "cache-control" in response.headers
+        assert "max-age" in response.headers["cache-control"]
+
+    def test_root_is_valid_html(self, client):
+        """Landing page should be valid HTML."""
+        response = client.get("/")
+        content = response.text
+
+        # Check for basic HTML structure
+        assert "<!DOCTYPE html>" in content
+        assert "<html" in content
+        assert "<head>" in content
+        assert "<body>" in content
+        assert "</html>" in content
+
+    def test_root_not_in_openapi_schema(self, client):
+        """Root endpoint should not appear in OpenAPI schema."""
+        response = client.get("/openapi.json")
+        assert response.status_code == 200
+
+        openapi_spec = response.json()
+        # The root path "/" should not be in the paths
+        assert "/" not in openapi_spec.get("paths", {})
