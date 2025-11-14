@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Dict
 
 from fastapi import FastAPI, HTTPException, status
-from fastapi.responses import JSONResponse, HTMLResponse
+from fastapi.responses import JSONResponse, HTMLResponse, RedirectResponse
 
 from .model_service import get_model_service
 from .schemas import (
@@ -78,14 +78,25 @@ async def root():
     - Links to interactive documentation (/docs, /redoc)
     - GitHub repository link
 
+    Falls back to redirecting to /docs if landing page is not available.
+
     Returns:
         HTMLResponse: Rendered landing page with caching headers
+        RedirectResponse: Redirect to /docs if landing page is missing
     """
-    html_content = LANDING_PAGE_PATH.read_text(encoding="utf-8")
-    return HTMLResponse(
-        content=html_content,
-        headers={"Cache-Control": "public, max-age=3600"}  # Cache for 1 hour
-    )
+    try:
+        html_content = LANDING_PAGE_PATH.read_text(encoding="utf-8")
+        return HTMLResponse(
+            content=html_content,
+            headers={"Cache-Control": "public, max-age=3600"}  # Cache for 1 hour
+        )
+    except FileNotFoundError:
+        # Graceful fallback if landing page is missing (e.g., packaging issue)
+        logger.warning(
+            f"Landing page not found at {LANDING_PAGE_PATH}. "
+            "Redirecting to API documentation."
+        )
+        return RedirectResponse(url="/docs")
 
 
 @app.get("/health", response_model=HealthResponse, tags=["Health"])

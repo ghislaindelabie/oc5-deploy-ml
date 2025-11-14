@@ -32,6 +32,7 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/oc5_ml_deployment"]
+artifacts = ["src/oc5_ml_deployment/api/static/*"]
 
 [tool.hatch.build.targets.sdist]
 include = ["src/oc5_ml_deployment", "README.md", "pyproject.toml"]
