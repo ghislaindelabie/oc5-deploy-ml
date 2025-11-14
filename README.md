@@ -1,3 +1,12 @@
+---
+title: OC5 ML API - HR Attrition Prediction
+emoji: 🤖
+colorFrom: blue
+colorTo: green
+sdk: docker
+pinned: false
+---
+
 # OC5 — Déployez un modèle de Machine Learning
 
 Production-ready ML deployment for HR attrition prediction.
