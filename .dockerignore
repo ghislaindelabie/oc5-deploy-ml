@@ -1,0 +1,86 @@
+# Python cache and virtual environments
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+env/
+.conda/
+
+# Git and version control
+.git/
+.gitignore
+.github/
+
+# Testing and coverage
+.pytest_cache/
+htmlcov/
+.coverage
+.coverage.*
+*.cover
+.hypothesis/
+tests/
+test_*.py
+
+# Development and documentation
+*.md
+!README.md
+docs/
+notebooks/
+*.ipynb
+.ipynb_checkpoints/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.claude/
+
+# Data files (if large - exclude raw data, keep model artifacts)
+data/*.csv
+data/*.parquet
+# Keep data/README.md if needed for reference
+
+# Build artifacts
+*.egg-info/
+dist/
+build/
+*.egg
+
+# CI/CD and deployment configs
+.github/
+*.yml
+!docker-compose.yml
+environment.yml
+uv.lock
+
+# Logs and temp files
+*.log
+*.tmp
+*.temp
+
+# Gradio app (we're deploying FastAPI only)
+gradio_app/
+
+# Development scripts
+demo_api_locally.py
+scripts/train_model.py
+
+# Legacy files
+app/
+hello.txt
+db/
+ci/
+artifacts/
+
+# Keep these files for production:
+# - src/
+# - model/
+# - requirements-prod.txt
+# - README.md (for HF Spaces description)
