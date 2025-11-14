@@ -8,7 +8,7 @@ predictions, and error handling.
 import pytest
 from fastapi.testclient import TestClient
 
-from src.oc5_ml_deployment.api.main import app
+from oc5_ml_deployment.api.main import app
 
 
 @pytest.fixture

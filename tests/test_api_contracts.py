@@ -13,7 +13,7 @@ Test coverage:
 
 import pytest
 from pydantic import ValidationError
-from src.oc5_ml_deployment.api.schemas import (
+from oc5_ml_deployment.api.schemas import (
     EmployeeFeatures,
     PredictionResponse,
     BatchPredictionRequest,
