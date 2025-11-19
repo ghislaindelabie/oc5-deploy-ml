@@ -21,3 +21,6 @@ model/*.pkl
 coverage.xml
 htmlcov/
 hello.txt
+
+# Documentation (local only)
+docs/
