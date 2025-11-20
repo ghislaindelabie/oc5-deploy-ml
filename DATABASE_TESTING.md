@@ -145,12 +145,35 @@ If you want to run database tests locally:
 
 ### GitHub Actions (CI/CD)
 
-For PR to main, add these secrets to your GitHub repository:
+For PR to main, add these **GitHub Secrets** (not environment variables) to your repository:
 
-1. Go to: **Settings → Secrets and variables → Actions**
-2. Add secrets:
-   - `OC5_DATABASE_URL` = Your Supabase pooled URL
-   - `OC5_DIRECT_URL` = Your Supabase direct URL (for migrations)
+**⚠️ IMPORTANT: These are SECRETS (not env vars) because they contain your database password!**
+
+#### How to Add GitHub Secrets
+
+1. Go to: **Settings → Secrets and variables → Actions → "New repository secret"**
+
+2. Add two secrets:
+
+   **Secret #1:**
+   ```
+   Name:  OC5_DATABASE_URL
+   Value: postgresql+asyncpg://postgres.xxxx:PASSWORD@aws-0-xx.pooler.supabase.com:5432/postgres
+   ```
+
+   **Secret #2:**
+   ```
+   Name:  OC5_DIRECT_URL
+   Value: postgresql+asyncpg://postgres.xxxx:PASSWORD@aws-0-xx.pooler.supabase.com:5432/postgres
+   ```
+
+#### GitHub Secrets Security
+
+When stored as GitHub Secrets:
+- ✅ Encrypted at rest in GitHub's vault
+- ✅ Automatically redacted from logs (shows `***`)
+- ✅ Not visible in UI after creation
+- ✅ Only accessible via `${{ secrets.NAME }}` in workflows
 
 The workflow will automatically run database tests on any PR to `main`.
 

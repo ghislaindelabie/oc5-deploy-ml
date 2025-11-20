@@ -213,22 +213,43 @@ asyncio.run(cleanup())
 
 ## GitHub Secrets (for CI/CD)
 
+⚠️ **IMPORTANT:** Store as **GitHub Secrets** (not env vars) because they contain passwords!
+
 Add these secrets to GitHub repository:
 
-1. Go to Settings → Secrets and variables → Actions
-2. Add:
-   - `OC5_DATABASE_URL` = (your Supabase pooled URL)
-   - `OC5_DIRECT_URL` = (your Supabase direct URL)
+1. Go to: **Settings → Secrets and variables → Actions → "New repository secret"**
+2. Add **two secrets**:
+   ```
+   Name:  OC5_DATABASE_URL
+   Value: postgresql+asyncpg://postgres.xxxx:PASSWORD@host:5432/postgres
+
+   Name:  OC5_DIRECT_URL
+   Value: postgresql+asyncpg://postgres.xxxx:PASSWORD@host:5432/postgres
+   ```
+
+**Why secrets?** URLs contain database password → encrypted storage required.
+
+**Security features:**
+- ✅ Encrypted at rest
+- ✅ Redacted from logs (shows `***`)
+- ✅ Not visible after creation
 
 ## HF Spaces Deployment
 
+🔐 **Storage:** Environment Variables (HF Spaces has its own security model)
+
 Add environment variables in HF Spaces:
 
-1. Go to Settings → Variables
+1. Go to: **Settings → Variables and secrets → "New secret"**
 2. Add:
-   - `OC5_DATABASE_URL` = (your Supabase pooled URL)
+   ```
+   Name:  OC5_DATABASE_URL
+   Value: postgresql+asyncpg://postgres.xxxx:PASSWORD@host:5432/postgres
+   ```
 
-**Note:** Don't need `OC5_DIRECT_URL` on HF Spaces (migrations run locally)
+**Note:**
+- Don't need `OC5_DIRECT_URL` on HF Spaces (migrations run locally)
+- HF Spaces treats these as secrets (not visible in UI after creation)
 
 ## Summary
 
