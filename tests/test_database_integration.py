@@ -10,7 +10,7 @@ Skip with: pytest -m "not database" (default)
 import os
 import pytest
 from sqlalchemy import select, func, delete
-from src.oc5_ml_deployment.database import DATABASE_ENABLED, engine, APIRequest, Prediction
+from oc5_ml_deployment.database import DATABASE_ENABLED, engine, APIRequest, Prediction
 
 # Skip all tests in this file if database not configured
 pytestmark = [
