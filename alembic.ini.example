@@ -1,0 +1,249 @@
+# ============================================================================
+# ALEMBIC CONFIGURATION FILE
+# ============================================================================
+# This file configures Alembic (database migration tool for SQLAlchemy).
+# It tells Alembic where to find migrations, how to connect to the database,
+# and how to format migration files.
+
+[alembic]
+# ----------------------------------------------------------------------------
+# CORE SETTINGS
+# ----------------------------------------------------------------------------
+
+# script_location: Directory where migration files are stored
+# Alembic will look for migrations in this folder
+script_location = alembic
+
+# file_template: How to name new migration files
+# Variables available:
+#   %(rev)s        = Revision ID (e.g., "abc123def456")
+#   %(slug)s       = Migration message slug (e.g., "create_users_table")
+#   %(year)d       = Year (e.g., 2025)
+#   %(month).2d    = Month with leading zero (e.g., 01, 02, ..., 12)
+#   %(day).2d      = Day with leading zero (e.g., 01, 02, ..., 31)
+#   %(hour).2d     = Hour (00-23)
+#   %(minute).2d   = Minute (00-59)
+#
+# Example result: "20251119_1430_abc123def456_create_users_table.py"
+file_template = %%(year)d%%(month).2d%%(day).2d_%%(hour).2d%%(minute).2d_%%(rev)s_%%(slug)s
+
+# prepend_sys_path: Add this path to Python's sys.path
+# Useful if you need to import modules from your project
+# Default: . (current directory)
+# prepend_sys_path = .
+
+# timezone: Timezone for timestamps in migrations
+# Not commonly used, defaults to local timezone
+# timezone = UTC
+
+# truncate_slug_length: Maximum length for the slug part of filename
+# Prevents extremely long filenames
+# Default: 40 characters
+# truncate_slug_length = 40
+
+# version_path_separator: Separator for multiple version paths
+# Used with version_locations for organizing migrations
+# Default: os (operating system dependent)
+# version_path_separator = os
+# version_path_separator = :
+# version_path_separator = ;
+
+# ----------------------------------------------------------------------------
+# DATABASE CONNECTION
+# ----------------------------------------------------------------------------
+
+# sqlalchemy.url: Database connection string
+# Format: dialect+driver://username:password@host:port/database
+#
+# IMPORTANT: In production, NEVER commit real credentials!
+# Override this with environment variable:
+#   - Set OC5_DATABASE_URL environment variable
+#   - Or modify alembic/env.py to read from environment
+#
+# Examples:
+#   PostgreSQL (sync):  postgresql://user:pass@localhost:5432/dbname
+#   PostgreSQL (async): postgresql+asyncpg://user:pass@localhost:5432/dbname
+#   SQLite:            sqlite:///./database.db
+#   MySQL:             mysql+pymysql://user:pass@localhost:3306/dbname
+#
+# For development only (replace with your actual credentials):
+sqlalchemy.url = postgresql+asyncpg://oc5_user:CHANGE_ME@localhost:5432/oc5_ml_api
+
+# Note: This can be overridden in alembic/env.py:
+#   config.set_main_option('sqlalchemy.url', os.getenv('OC5_DATABASE_URL'))
+
+# ----------------------------------------------------------------------------
+# OUTPUT LOGGING CONFIGURATION
+# ----------------------------------------------------------------------------
+# Alembic uses Python's logging module. These sections configure how
+# migration output is displayed.
+
+# Loggers: Define which components generate logs
+[loggers]
+keys = root,sqlalchemy,alembic
+
+# Handlers: Define where logs are sent (console, file, etc.)
+[handlers]
+keys = console
+
+# Formatters: Define how log messages are formatted
+[formatters]
+keys = generic
+
+# ----------------------------------------------------------------------------
+# LOGGER CONFIGURATIONS
+# ----------------------------------------------------------------------------
+
+# Root logger: Catches all logs not handled by other loggers
+[logger_root]
+level = WARN              # Only show warnings and errors
+handlers = console        # Send to console
+qualname =                # Empty = root logger
+
+# SQLAlchemy logger: Logs from SQLAlchemy (SQL queries, etc.)
+[logger_sqlalchemy]
+level = WARN              # WARN = quiet, INFO = show queries, DEBUG = verbose
+handlers =                # Empty = use parent (root) handler
+qualname = sqlalchemy.engine  # Logger name
+# Note: If you want to see all SQL queries during migrations, change to INFO
+
+# Alembic logger: Logs from Alembic itself (migration operations)
+[logger_alembic]
+level = INFO              # Show migration progress
+handlers =                # Empty = use parent handler
+qualname = alembic        # Logger name
+
+# ----------------------------------------------------------------------------
+# HANDLER CONFIGURATION
+# ----------------------------------------------------------------------------
+
+# Console handler: Prints logs to terminal (stderr)
+[handler_console]
+class = StreamHandler      # Python's logging.StreamHandler
+args = (sys.stderr,)       # Output to standard error (not stdout)
+level = NOTSET             # Accept all levels (filtering done by loggers)
+formatter = generic        # Use the 'generic' formatter (defined below)
+
+# You could add a file handler for production:
+# [handler_file]
+# class = FileHandler
+# args = ('alembic.log', 'a')  # Append to alembic.log file
+# level = INFO
+# formatter = generic
+
+# ----------------------------------------------------------------------------
+# FORMATTER CONFIGURATION
+# ----------------------------------------------------------------------------
+
+# Generic formatter: Defines log message format
+[formatter_generic]
+# Format string:
+#   %(levelname)-5.5s  = Log level (INFO, WARN, ERROR) padded to 5 chars
+#   %(name)s           = Logger name (alembic, sqlalchemy.engine, etc.)
+#   %(message)s        = The actual log message
+format = %(levelname)-5.5s [%(name)s] %(message)s
+
+# datefmt: Date format for timestamps (not used in current format)
+# If you add %(asctime)s to format, this controls how dates appear
+datefmt = %H:%M:%S
+
+# Example with timestamp:
+# format = %(asctime)s %(levelname)-5.5s [%(name)s] %(message)s
+# Result: "14:30:45 INFO  [alembic] Running migration abc123"
+
+# ============================================================================
+# COMMON CUSTOMIZATIONS
+# ============================================================================
+
+# 1. PRODUCTION: Override database URL from environment
+#    In alembic/env.py, add:
+#      import os
+#      config.set_main_option('sqlalchemy.url', os.getenv('OC5_DATABASE_URL'))
+
+# 2. DEVELOPMENT: Show all SQL queries
+#    Change [logger_sqlalchemy] level to INFO:
+#      level = INFO
+
+# 3. QUIET MODE: Only show errors
+#    Change all loggers to ERROR:
+#      [logger_root]
+#      level = ERROR
+#      [logger_alembic]
+#      level = ERROR
+
+# 4. CUSTOM MIGRATION DIRECTORY
+#    If you want migrations in a different folder:
+#      script_location = database/migrations
+
+# 5. MULTIPLE DATABASES
+#    You can have separate alembic.ini files:
+#      alembic.ini          (main database)
+#      alembic_analytics.ini (analytics database)
+#    Run with: alembic -c alembic_analytics.ini upgrade head
+
+# ============================================================================
+# USAGE EXAMPLES
+# ============================================================================
+
+# Create a new migration:
+#   alembic revision --autogenerate -m "add users table"
+
+# Apply all pending migrations:
+#   alembic upgrade head
+
+# Rollback last migration:
+#   alembic downgrade -1
+
+# View current version:
+#   alembic current
+
+# View migration history:
+#   alembic history --verbose
+
+# Upgrade to specific revision:
+#   alembic upgrade abc123
+
+# Generate SQL without executing (dry run):
+#   alembic upgrade head --sql
+
+# ============================================================================
+# SECURITY NOTES
+# ============================================================================
+
+# 1. NEVER commit real database credentials to Git!
+#    - Add alembic.ini to .gitignore if it contains real passwords
+#    - Or use alembic.ini.example (this file) and create alembic.ini locally
+
+# 2. Use environment variables for production:
+#    export OC5_DATABASE_URL="postgresql+asyncpg://user:pass@host/db"
+
+# 3. For CI/CD, use secrets:
+#    GitHub Actions: ${{ secrets.DATABASE_URL }}
+#    GitLab CI: $CI_DATABASE_URL
+#    Docker: --env OC5_DATABASE_URL=...
+
+# ============================================================================
+# TROUBLESHOOTING
+# ============================================================================
+
+# Error: "Can't locate revision identified by 'xyz'"
+#   → Check alembic_version table: SELECT * FROM alembic_version;
+#   → Run: alembic stamp head  (mark current state as migrated)
+
+# Error: "Target database is not up to date"
+#   → Run: alembic upgrade head
+
+# Error: "FATAL: password authentication failed"
+#   → Check your database credentials in sqlalchemy.url
+
+# Error: "relation 'alembic_version' does not exist"
+#   → Database is empty, run: alembic upgrade head
+#   → Or stamp initial version: alembic stamp base
+
+# Want to see more details?
+#   → Set logger levels to DEBUG
+#   → Add --verbose flag: alembic upgrade head --verbose
+
+# ============================================================================
+# END OF CONFIGURATION
+# ============================================================================

@@ -311,7 +311,7 @@ class TestPredictionResponse:
                 "will_leave": False,
                 "probability_leave": 23.4,
                 "probability_stay": 76.6,
-                "risk_level": "low",
+                "risk_level": "LOW",
             },
             "metadata": {
                 "model_version": "xgb_enhanced_v1.0",
@@ -323,7 +323,7 @@ class TestPredictionResponse:
         response = PredictionResponse(**response_data)
         assert response.prediction.will_leave is False
         assert response.prediction.probability_leave == 23.4
-        assert response.prediction.risk_level == "low"
+        assert response.prediction.risk_level == "LOW"
 
     def test_probability_outside_range_raises_error(self):
         """Probabilities outside 0-100 range should be rejected."""
@@ -332,7 +332,7 @@ class TestPredictionResponse:
                 "will_leave": False,
                 "probability_leave": 150.0,  # Invalid
                 "probability_stay": 76.6,
-                "risk_level": "low",
+                "risk_level": "LOW",
             },
             "metadata": {"model_version": "v1", "prediction_time_ms": 12, "timestamp": "2025-11-14T10:30:00Z"},
         }

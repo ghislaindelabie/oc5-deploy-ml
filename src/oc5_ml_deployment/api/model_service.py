@@ -198,14 +198,14 @@ class ModelService:
             probability_leave: Probability of leaving (0-100)
 
         Returns:
-            Risk level: "low", "medium", or "high"
+            Risk level: "LOW", "MEDIUM", or "HIGH"
         """
         if probability_leave < 40:
-            return "low"
+            return "LOW"
         elif probability_leave < 60:
-            return "medium"
+            return "MEDIUM"
         else:
-            return "high"
+            return "HIGH"
 
 
 # Global model service instance

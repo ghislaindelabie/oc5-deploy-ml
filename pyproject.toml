@@ -17,6 +17,11 @@ dependencies = [
   "fastapi>=0.115.0",
   "uvicorn[standard]>=0.32.0",
   "pydantic>=2.0",
+  "sqlalchemy>=2.0",
+  "asyncpg>=0.29",
+  "alembic>=1.13",
+  "greenlet>=3.0",
+  "python-dotenv>=1.0",
 ]
 
 [project.optional-dependencies]
@@ -41,4 +46,15 @@ include = ["src/oc5_ml_deployment", "README.md", "pyproject.toml"]
 dev = [
     "pytest>=8.4.2",
     "pytest-cov>=7.0.0",
+    "pytest-asyncio>=0.24.0",
 ]
+
+[tool.pytest.ini_options]
+markers = [
+    "database: tests that require database connection (run only on PR to main)",
+    "integration: integration tests",
+    "slow: slow running tests",
+]
+asyncio_mode = "auto"
+# By default, skip database tests (run them explicitly with -m database)
+addopts = "-m 'not database'"
