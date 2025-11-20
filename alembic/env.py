@@ -1,0 +1,112 @@
+"""
+Alembic environment configuration for async PostgreSQL migrations.
+
+This file is automatically loaded by Alembic and configures how migrations
+are executed.
+"""
+
+from logging.config import fileConfig
+from sqlalchemy import pool
+from sqlalchemy.engine import Connection
+from sqlalchemy.ext.asyncio import async_engine_from_config
+from alembic import context
+import asyncio
+import os
+import sys
+from pathlib import Path
+
+# Add src to path to import models
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+
+# Import models for migration detection
+from oc5_ml_deployment.database.models import Base
+
+# Alembic Config object
+config = context.config
+
+# Override database URL from environment variable (for migrations)
+# Use DIRECT_URL (no pgbouncer) for migrations
+if os.getenv("OC5_DIRECT_URL"):
+    config.set_main_option("sqlalchemy.url", os.getenv("OC5_DIRECT_URL"))
+elif os.getenv("OC5_DATABASE_URL"):
+    # Fallback to regular database URL if DIRECT_URL not set
+    config.set_main_option("sqlalchemy.url", os.getenv("OC5_DATABASE_URL"))
+
+# Setup logging
+if config.config_file_name is not None:
+    fileConfig(config.config_file_name)
+
+# Target metadata from models
+target_metadata = Base.metadata
+
+
+def run_migrations_offline() -> None:
+    """
+    Run migrations in 'offline' mode (generate SQL without executing).
+
+    This generates SQL scripts that can be reviewed and applied manually.
+    Useful for production deployments requiring DBA approval.
+
+    Usage:
+        alembic upgrade head --sql > migration.sql
+    """
+    url = config.get_main_option("sqlalchemy.url")
+    context.configure(
+        url=url,
+        target_metadata=target_metadata,
+        literal_binds=True,
+        dialect_opts={"paramstyle": "named"},
+    )
+
+    with context.begin_transaction():
+        context.run_migrations()
+
+
+def do_run_migrations(connection: Connection) -> None:
+    """
+    Execute migrations with an active database connection.
+
+    Args:
+        connection: SQLAlchemy connection object
+    """
+    context.configure(connection=connection, target_metadata=target_metadata)
+
+    with context.begin_transaction():
+        context.run_migrations()
+
+
+async def run_async_migrations() -> None:
+    """
+    Run migrations in 'online' mode with async engine.
+
+    Connects to the database and executes migrations directly.
+    This is the standard mode for development and automated deployments.
+    """
+    connectable = async_engine_from_config(
+        config.get_section(config.config_ini_section, {}),
+        prefix="sqlalchemy.",
+        poolclass=pool.NullPool,  # No pooling for migrations
+    )
+
+    async with connectable.connect() as connection:
+        await connection.run_sync(do_run_migrations)
+
+    await connectable.dispose()
+
+
+def run_migrations_online() -> None:
+    """
+    Run migrations in 'online' mode (execute on database).
+
+    This is the default mode when running:
+        alembic upgrade head
+        alembic downgrade -1
+    """
+    asyncio.run(run_async_migrations())
+
+
+# Entry point: Choose offline or online mode
+if context.is_offline_mode():
+    run_migrations_offline()
+else:
+    run_migrations_online()

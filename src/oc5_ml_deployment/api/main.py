@@ -10,10 +10,11 @@ import time
 from contextlib import asynccontextmanager
 from datetime import datetime
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Optional
 
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, status, Request, Depends
 from fastapi.responses import JSONResponse, HTMLResponse, RedirectResponse
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from .model_service import get_model_service
 from .schemas import (
@@ -26,6 +27,10 @@ from .schemas import (
     PredictionResponse,
     PredictionResult,
 )
+
+# Import database components (optional - works without database)
+from ..database import get_db, DATABASE_ENABLED
+from ..database import crud
 
 # Configure logging
 logging.basicConfig(
@@ -40,11 +45,19 @@ async def lifespan(app: FastAPI):
     """Handle startup and shutdown events."""
     # Startup
     logger.info("Starting up API...")
+
+    # Check model
     model_service = get_model_service()
     if model_service.is_loaded():
         logger.info("Model loaded successfully")
     else:
         logger.error("Failed to load model")
+
+    # Check database
+    if DATABASE_ENABLED:
+        logger.info("Database logging is ENABLED")
+    else:
+        logger.warning("Database logging is DISABLED - predictions will not be saved")
 
     yield
 
@@ -143,15 +156,21 @@ async def get_model_info():
 
 
 @app.post("/api/v1/predict", response_model=PredictionResponse, tags=["Predictions"])
-async def predict_single(employee: EmployeeFeatures):
+async def predict_single(
+    employee: EmployeeFeatures,
+    request: Request,
+    db: Optional[AsyncSession] = Depends(get_db)
+):
     """
     Predict attrition for a single employee.
 
     Accepts employee features and returns prediction with probability
-    and risk level.
+    and risk level. Logs request and prediction to database if enabled.
 
     Args:
         employee: Employee features
+        request: FastAPI request object (for metadata)
+        db: Database session (optional, depends on DATABASE_ENABLED)
 
     Returns:
         Prediction result with probabilities and metadata
@@ -164,18 +183,50 @@ async def predict_single(employee: EmployeeFeatures):
             detail="Model not loaded"
         )
 
+    start_time = time.time()
+    http_status_code = status.HTTP_200_OK
+
     try:
         # Convert Pydantic model to dict
         employee_data = employee.model_dump()
-
-        # Start timing
-        start_time = time.time()
 
         # Make prediction
         will_leave, prob_leave, prob_stay, risk_level = model_service.predict(employee_data)
 
         # Calculate prediction time
         prediction_time_ms = int((time.time() - start_time) * 1000)
+
+        # Log to database if enabled
+        if DATABASE_ENABLED and db is not None:
+            try:
+                # Create API request record
+                api_request = await crud.create_api_request(
+                    session=db,
+                    endpoint="/api/v1/predict",
+                    request_data=employee_data,
+                    client_ip=request.client.host if request.client else None,
+                    user_agent=request.headers.get("user-agent"),
+                    http_status=http_status_code,
+                    response_time_ms=prediction_time_ms
+                )
+
+                # Create prediction record
+                await crud.create_prediction(
+                    session=db,
+                    request_id=api_request.id,
+                    employee_id=employee_data.get("employee_id"),
+                    attrition_prob=prob_leave,
+                    risk_level=risk_level,
+                    model_version=model_service.metadata.get("model_version"),
+                    features_snapshot=employee_data
+                )
+
+                await db.commit()
+                logger.debug(f"Logged prediction to database: request_id={api_request.id}")
+            except Exception as db_error:
+                logger.error(f"Failed to log to database: {db_error}")
+                # Don't fail the request if database logging fails
+                await db.rollback()
 
         # Build response
         return PredictionResponse(
@@ -193,29 +244,31 @@ async def predict_single(employee: EmployeeFeatures):
         )
 
     except ValueError as e:
+        http_status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
         logger.error(f"Validation error: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=str(e)
-        )
+        raise HTTPException(status_code=http_status_code, detail=str(e))
     except Exception as e:
+        http_status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         logger.error(f"Prediction error: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to generate prediction"
-        )
+        raise HTTPException(status_code=http_status_code, detail="Failed to generate prediction")
 
 
 @app.post("/api/v1/predict/batch", response_model=BatchPredictionResponse, tags=["Predictions"])
-async def predict_batch(request: BatchPredictionRequest):
+async def predict_batch(
+    batch_request: BatchPredictionRequest,
+    request: Request,
+    db: Optional[AsyncSession] = Depends(get_db)
+):
     """
     Predict attrition for multiple employees.
 
     Accepts a list of employees (up to 100) and returns predictions
-    for each one.
+    for each one. Logs all requests and predictions to database if enabled.
 
     Args:
-        request: Batch prediction request with list of employees
+        batch_request: Batch prediction request with list of employees
+        request: FastAPI request object (for metadata)
+        db: Database session (optional, depends on DATABASE_ENABLED)
 
     Returns:
         Batch prediction results with metadata
@@ -228,15 +281,15 @@ async def predict_batch(request: BatchPredictionRequest):
             detail="Model not loaded"
         )
 
-    try:
-        # Start timing
-        start_time = time.time()
+    start_time = time.time()
+    http_status_code = status.HTTP_200_OK
 
+    try:
         # Extract employee data
         employees_data = []
         employee_ids = []
 
-        for employee in request.employees:
+        for employee in batch_request.employees:
             employee_dict = employee.model_dump()
             employee_id = employee_dict.pop("employee_id")
             employee_ids.append(employee_id)
@@ -247,6 +300,43 @@ async def predict_batch(request: BatchPredictionRequest):
 
         # Calculate prediction time
         prediction_time_ms = int((time.time() - start_time) * 1000)
+
+        # Log to database if enabled
+        api_request_id = None
+        if DATABASE_ENABLED and db is not None:
+            try:
+                # Create API request record (one for the whole batch)
+                api_request = await crud.create_api_request(
+                    session=db,
+                    endpoint="/api/v1/predict/batch",
+                    request_data={"employee_count": len(employees_data)},
+                    client_ip=request.client.host if request.client else None,
+                    user_agent=request.headers.get("user-agent"),
+                    http_status=http_status_code,
+                    response_time_ms=prediction_time_ms
+                )
+                api_request_id = api_request.id
+
+                # Create prediction records (one for each employee)
+                for employee_id, employee_data, (will_leave, prob_leave, prob_stay, risk_level) in zip(
+                    employee_ids, employees_data, predictions
+                ):
+                    await crud.create_prediction(
+                        session=db,
+                        request_id=api_request.id,
+                        employee_id=employee_id,
+                        attrition_prob=prob_leave,
+                        risk_level=risk_level,
+                        model_version=model_service.metadata.get("model_version"),
+                        features_snapshot=employee_data
+                    )
+
+                await db.commit()
+                logger.debug(f"Logged batch predictions to database: request_id={api_request.id}, count={len(predictions)}")
+            except Exception as db_error:
+                logger.error(f"Failed to log batch to database: {db_error}")
+                # Don't fail the request if database logging fails
+                await db.rollback()
 
         # Build response
         prediction_items = []
@@ -271,17 +361,13 @@ async def predict_batch(request: BatchPredictionRequest):
         )
 
     except ValueError as e:
+        http_status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
         logger.error(f"Validation error: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=str(e)
-        )
+        raise HTTPException(status_code=http_status_code, detail=str(e))
     except Exception as e:
+        http_status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         logger.error(f"Batch prediction error: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to generate batch predictions"
-        )
+        raise HTTPException(status_code=http_status_code, detail="Failed to generate batch predictions")
 
 
 @app.exception_handler(Exception)
