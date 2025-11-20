@@ -30,6 +30,9 @@ if DATABASE_ENABLED:
         max_overflow=10,  # Additional connections when pool is full
         pool_pre_ping=True,  # Verify connections before using
         pool_recycle=3600,  # Recycle connections after 1 hour
+        connect_args={
+            "statement_cache_size": 0,  # Disable prepared statements for pgbouncer compatibility
+        },
     )
 
     # Create session factory

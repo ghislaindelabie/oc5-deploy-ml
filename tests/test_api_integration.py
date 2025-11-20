@@ -175,7 +175,7 @@ class TestPredictEndpoint:
         data = response.json()
 
         risk_level = data["prediction"]["risk_level"]
-        assert risk_level in ["low", "medium", "high"]
+        assert risk_level in ["LOW", "MEDIUM", "HIGH"]
 
     def test_predict_includes_metadata(self, client, valid_employee_data):
         """Response should include prediction metadata."""
@@ -383,11 +383,11 @@ class TestEdgeCases:
 
         # Verify risk level matches probability
         if prob < 40:
-            assert risk == "low"
+            assert risk == "LOW"
         elif prob < 60:
-            assert risk == "medium"
+            assert risk == "MEDIUM"
         else:
-            assert risk == "high"
+            assert risk == "HIGH"
 
 
 # ===== Performance Tests =====

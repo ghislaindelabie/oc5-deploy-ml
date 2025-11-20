@@ -108,7 +108,7 @@ class PredictionResult(BaseModel):
     will_leave: bool = Field(..., description="Prediction: will the employee leave?")
     probability_leave: float = Field(..., ge=0, le=100, description="Probability of leaving (percentage)")
     probability_stay: float = Field(..., ge=0, le=100, description="Probability of staying (percentage)")
-    risk_level: Literal["low", "medium", "high"] = Field(..., description="Risk categorization")
+    risk_level: Literal["LOW", "MEDIUM", "HIGH"] = Field(..., description="Risk categorization")
 
 
 class PredictionResponse(BaseModel):
@@ -186,7 +186,7 @@ class BatchPredictionItem(BaseModel):
     employee_id: str
     will_leave: bool
     probability_leave: float = Field(..., ge=0, le=100)
-    risk_level: Literal["low", "medium", "high"]
+    risk_level: Literal["LOW", "MEDIUM", "HIGH"]
 
 
 class BatchPredictionResponse(BaseModel):
