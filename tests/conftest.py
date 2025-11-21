@@ -35,7 +35,10 @@ async def async_client():
             response = await async_client.post("/api/v1/predict", json=data)
             assert response.status_code == 200
     """
-    async with httpx.AsyncClient(app=app, base_url="http://test") as ac:
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app),
+        base_url="http://test"
+    ) as ac:
         yield ac
 
 
