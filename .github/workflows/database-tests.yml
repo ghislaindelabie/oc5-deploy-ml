@@ -25,7 +25,7 @@ jobs:
           pip install "numpy==2.3.*" "pandas==2.2.*" "scikit-learn==1.5.*"
 
       - name: Install uv and pytest
-        run: pip install uv pytest pytest-cov pytest-asyncio
+        run: pip install uv pytest pytest-cov pytest-asyncio httpx
 
       - name: Install dependencies + dev groups
         run: |
@@ -39,7 +39,6 @@ jobs:
       - name: Run database integration tests
         env:
           OC5_DATABASE_URL: ${{ secrets.OC5_DATABASE_URL }}
-          OC5_DIRECT_URL: ${{ secrets.OC5_DIRECT_URL }}
           APP_ENV: test
         run: |
           # Run ONLY database tests (marked with @pytest.mark.database)
@@ -50,8 +49,9 @@ jobs:
         run: |
           echo "❌ Database tests failed!"
           echo ""
-          echo "Please ensure GitHub secrets are configured:"
-          echo "  - OC5_DATABASE_URL (Supabase pooled connection)"
-          echo "  - OC5_DIRECT_URL (Supabase direct connection)"
+          echo "Please ensure GitHub secret is configured:"
+          echo "  - OC5_DATABASE_URL (Supabase direct connection URL)"
+          echo ""
+          echo "Format: postgresql+asyncpg://USER:PASS@HOST:5432/postgres"
           echo ""
           echo "Go to: Settings → Secrets and variables → Actions"

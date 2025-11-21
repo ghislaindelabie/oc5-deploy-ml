@@ -25,11 +25,8 @@ from oc5_ml_deployment.database.models import Base
 config = context.config
 
 # Override database URL from environment variable (for migrations)
-# Use DIRECT_URL (no pgbouncer) for migrations
-if os.getenv("OC5_DIRECT_URL"):
-    config.set_main_option("sqlalchemy.url", os.getenv("OC5_DIRECT_URL"))
-elif os.getenv("OC5_DATABASE_URL"):
-    # Fallback to regular database URL if DIRECT_URL not set
+# Use OC5_DATABASE_URL for all database operations (app + migrations)
+if os.getenv("OC5_DATABASE_URL"):
     config.set_main_option("sqlalchemy.url", os.getenv("OC5_DATABASE_URL"))
 
 # Setup logging

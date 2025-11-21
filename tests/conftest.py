@@ -4,6 +4,7 @@ Shared pytest fixtures for all test modules.
 This file provides common fixtures that can be used across all test files.
 """
 import pytest
+import httpx
 from fastapi.testclient import TestClient
 from oc5_ml_deployment.api.main import app
 
@@ -14,8 +15,31 @@ def client():
 
     This fixture provides a TestClient instance that can be used to make
     HTTP requests to the API during testing.
+
+    Note: For database tests that require async operations, use async_client instead.
     """
     return TestClient(app)
+
+
+@pytest.fixture
+async def async_client():
+    """Create an async HTTP client for testing.
+
+    This fixture provides an httpx.AsyncClient instance that can be used for
+    async HTTP requests. Unlike TestClient, this works properly with async
+    database operations.
+
+    Usage:
+        @pytest.mark.asyncio
+        async def test_something(async_client):
+            response = await async_client.post("/api/v1/predict", json=data)
+            assert response.status_code == 200
+    """
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app),
+        base_url="http://test"
+    ) as ac:
+        yield ac
 
 
 @pytest.fixture
