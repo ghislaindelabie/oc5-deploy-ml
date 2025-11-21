@@ -6,7 +6,7 @@ All validation rules are defined here and can be adjusted based on
 data analysis and business requirements.
 """
 
-from typing import Literal, Optional
+from typing import Dict, List, Literal, Optional
 from datetime import datetime
 from pydantic import BaseModel, Field, field_validator, ConfigDict
 
@@ -265,6 +265,70 @@ class ModelInfoResponse(BaseModel):
                 "features_required": {
                     "numeric": ["age", "revenu_mensuel"],
                     "categorical": ["genre", "statut_marital"]
+                }
+            }
+        }
+    )
+
+
+class FeatureExplanation(BaseModel):
+    """Individual feature contribution to prediction."""
+    feature: str = Field(description="Feature name")
+    shap_value: float = Field(description="SHAP value (contribution to prediction)")
+    impact: str = Field(description="Impact direction: 'increases risk', 'decreases risk', or 'neutral'")
+
+    model_config = ConfigDict(
+        protected_namespaces=(),
+        json_schema_extra={
+            "example": {
+                "feature": "nombre_heures_travailless",
+                "shap_value": 0.1523,
+                "impact": "increases risk"
+            }
+        }
+    )
+
+
+class ExplanationResponse(BaseModel):
+    """Response for prediction explanation endpoint."""
+    top_features: List[FeatureExplanation] = Field(description="Top 5 features influencing the prediction")
+    metadata: Dict = Field(description="Metadata about the explanation generation")
+
+    model_config = ConfigDict(
+        protected_namespaces=(),
+        json_schema_extra={
+            "example": {
+                "top_features": [
+                    {
+                        "feature": "nombre_heures_travailless",
+                        "shap_value": 0.1523,
+                        "impact": "increases risk"
+                    },
+                    {
+                        "feature": "age",
+                        "shap_value": -0.0834,
+                        "impact": "decreases risk"
+                    },
+                    {
+                        "feature": "revenu_mensuel",
+                        "shap_value": 0.0672,
+                        "impact": "increases risk"
+                    },
+                    {
+                        "feature": "satisfaction_employee_environnement",
+                        "shap_value": -0.0451,
+                        "impact": "decreases risk"
+                    },
+                    {
+                        "feature": "distance_domicile_travail",
+                        "shap_value": 0.0289,
+                        "impact": "increases risk"
+                    }
+                ],
+                "metadata": {
+                    "model_version": "xgb_enhanced_v1.0",
+                    "explanation_time_ms": 45,
+                    "timestamp": "2025-11-21T10:30:00Z"
                 }
             }
         }
