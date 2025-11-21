@@ -8,7 +8,7 @@ data analysis and business requirements.
 
 from typing import Literal, Optional
 from datetime import datetime
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 
 
 class EmployeeFeatures(BaseModel):
@@ -229,8 +229,9 @@ class HealthResponse(BaseModel):
     model_version: Optional[str] = None
     timestamp: str
 
-    model_config = {
-        "json_schema_extra": {
+    model_config = ConfigDict(
+        protected_namespaces=(),
+        json_schema_extra={
             "example": {
                 "status": "healthy",
                 "model_loaded": True,
@@ -238,7 +239,7 @@ class HealthResponse(BaseModel):
                 "timestamp": "2025-11-14T10:30:00Z"
             }
         }
-    }
+    )
 
 
 class ModelInfoResponse(BaseModel):
@@ -248,8 +249,9 @@ class ModelInfoResponse(BaseModel):
     performance_metrics: dict
     features_required: dict
 
-    model_config = {
-        "json_schema_extra": {
+    model_config = ConfigDict(
+        protected_namespaces=(),
+        json_schema_extra={
             "example": {
                 "model_version": "xgb_enhanced_v1.0",
                 "training_date": "2025-11-13T23:27:36",
@@ -266,4 +268,4 @@ class ModelInfoResponse(BaseModel):
                 }
             }
         }
-    }
+    )
