@@ -22,7 +22,6 @@ def client():
 
 
 @pytest.fixture
-@pytest.mark.asyncio
 async def async_client():
     """Create an async HTTP client for testing.
 
