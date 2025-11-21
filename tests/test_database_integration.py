@@ -87,7 +87,7 @@ async def test_database_connection(db_session):
 
 
 @pytest.mark.asyncio
-async def test_single_prediction_logs_to_database(client, db_session, sample_employee_data):
+async def test_single_prediction_logs_to_database(async_client, db_session, sample_employee_data):
     """Verify single prediction is logged to database."""
     # Count records before
     result = await db_session.execute(select(func.count()).select_from(APIRequest))
@@ -97,7 +97,7 @@ async def test_single_prediction_logs_to_database(client, db_session, sample_emp
     initial_predictions = result.scalar()
 
     # Make prediction
-    response = client.post("/api/v1/predict", json=sample_employee_data)
+    response = await async_client.post("/api/v1/predict", json=sample_employee_data)
     assert response.status_code == 200
 
     # Refresh session to see new data
@@ -129,7 +129,7 @@ async def test_single_prediction_logs_to_database(client, db_session, sample_emp
 
 
 @pytest.mark.asyncio
-async def test_batch_prediction_logs_to_database(client, db_session, sample_employee_data):
+async def test_batch_prediction_logs_to_database(async_client, db_session, sample_employee_data):
     """Verify batch predictions are logged to database."""
     # Create batch with 3 employees
     batch_data = {
@@ -145,7 +145,7 @@ async def test_batch_prediction_logs_to_database(client, db_session, sample_empl
     initial_predictions = result.scalar()
 
     # Make batch prediction
-    response = client.post("/api/v1/predict/batch", json=batch_data)
+    response = await async_client.post("/api/v1/predict/batch", json=batch_data)
     assert response.status_code == 200
 
     # Refresh session
@@ -158,12 +158,12 @@ async def test_batch_prediction_logs_to_database(client, db_session, sample_empl
 
 
 @pytest.mark.asyncio
-async def test_database_error_doesnt_break_prediction(client, sample_employee_data, monkeypatch):
+async def test_database_error_doesnt_break_prediction(async_client, sample_employee_data, monkeypatch):
     """Verify API still works even if database logging fails."""
     # This test verifies graceful degradation
     # (Hard to test without actually breaking DB, but validates error handling exists)
 
-    response = client.post("/api/v1/predict", json=sample_employee_data)
+    response = await async_client.post("/api/v1/predict", json=sample_employee_data)
     assert response.status_code == 200
     assert "prediction" in response.json()
     assert "metadata" in response.json()
