@@ -22,6 +22,8 @@ from .schemas import (
     BatchPredictionResponse,
     BatchPredictionItem,
     EmployeeFeatures,
+    ExplanationResponse,
+    FeatureExplanation,
     HealthResponse,
     ModelInfoResponse,
     PredictionResponse,
@@ -370,6 +372,59 @@ async def predict_batch(
         http_status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         logger.error(f"Batch prediction error: {e}")
         raise HTTPException(status_code=http_status_code, detail="Failed to generate batch predictions")
+
+
+@app.post("/api/v1/explain", response_model=ExplanationResponse, tags=["Predictions"])
+async def explain_prediction(employee: EmployeeFeatures):
+    """
+    Generate SHAP explanations for a prediction.
+
+    Returns the top 5 features that most influenced the prediction outcome,
+    with their SHAP values and impact direction.
+
+    Args:
+        employee: Employee features
+
+    Returns:
+        Top 5 feature contributions with SHAP values and metadata
+    """
+    model_service = get_model_service()
+
+    if not model_service.is_loaded():
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Model not loaded"
+        )
+
+    start_time = time.time()
+
+    try:
+        # Convert Pydantic model to dict (remove employee_id for model input)
+        employee_data = employee.model_dump()
+        employee_data.pop("employee_id", None)  # Remove ID, not used in model
+
+        # Generate explanations
+        top_features = model_service.explain(employee_data)
+
+        # Calculate explanation time
+        explanation_time_ms = int((time.time() - start_time) * 1000)
+
+        # Build response
+        return ExplanationResponse(
+            top_features=[FeatureExplanation(**f) for f in top_features],
+            metadata={
+                "model_version": model_service.metadata.get("model_version"),
+                "explanation_time_ms": explanation_time_ms,
+                "timestamp": datetime.utcnow().isoformat() + "Z",
+            },
+        )
+
+    except ValueError as e:
+        logger.error(f"Validation error in explain: {e}")
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e))
+    except Exception as e:
+        logger.error(f"Explanation error: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to generate explanation")
 
 
 @app.exception_handler(Exception)

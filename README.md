@@ -48,6 +48,9 @@ The API provides the following endpoints:
 - `POST /api/v1/predict` - Single employee prediction
 - `POST /api/v1/predict/batch` - Batch predictions (up to 100 employees)
 
+### Model Interpretability
+- `POST /api/v1/explain` - Get SHAP explanations for a prediction (top 5 influential features)
+
 See the `/docs` endpoint (Swagger UI) when running the API for detailed schema documentation.
 
 ## API Design Decisions
