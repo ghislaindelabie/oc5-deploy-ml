@@ -1,54 +1,74 @@
 # Project Status - OC5 ML Deployment
 
-**Last Updated:** 2025-11-14
-**Status:** Core deployment complete, awaiting completion requirements from supervisor
+**Last Updated:** 2025-11-21
+**Current Version:** v1.2.0
+**Status:** Production-ready with SHAP explanations
 
 ---
 
 ## ✅ What's Completed
 
-### Phase 0: Model Training
+### Phase 0: Model Training (v1.0.0)
 - XGBoost model trained on HR attrition data
 - Model saved: `model/hr_attrition_xgb_enhanced.joblib`
 - Performance: ~62.5% precision @ 50% recall, ROC AUC ~0.85
 - Training script: `scripts/train_model.py`
 
-### Phase 1: FastAPI Implementation
-- 4 production endpoints operational
-- 65 tests, 85% code coverage
-- Interactive docs at `/docs`
-- Live API working
+### Phase 1: FastAPI Implementation (v1.0.0)
+- **5 production endpoints operational:**
+  - `GET /health` - Health check
+  - `GET /api/v1/model/info` - Model metadata
+  - `POST /api/v1/predict` - Single prediction
+  - `POST /api/v1/predict/batch` - Batch predictions (up to 100)
+  - `POST /api/v1/explain` - SHAP explanations (v1.2.0)
+- 75 tests, 76.68% code coverage
+- Interactive docs at `/docs` and `/redoc`
+- Professional HTML landing page
 
-### Phase 2: Docker Deployment
+### Phase 2: Docker Deployment (v1.0.0)
 - Deployed to Hugging Face Spaces (public)
 - Live URL: https://ghislaindelabie-oc5-ml-api.hf.space
 - CI/CD pipeline with GitHub Actions
+- Automatic deployment on main branch merge
 - Docker optimized for production
 
-### Additional Features
-- Professional HTML landing page at root
-- Comprehensive error handling
-- Static file packaging configured
-- All PRs merged (no open PRs)
+### Phase 3: Database Integration (v1.0.2)
+- PostgreSQL via Supabase (cloud-hosted)
+- Logs all prediction requests and results
+- Alembic migrations for schema management
+- Graceful degradation (API works without database)
+- 365-day data retention policy
+
+### Phase 4: Test Coverage & Quality (v1.0.4)
+- Improved test coverage from 75% to 76.68%
+- Added error handling tests (validation, edge cases)
+- Enforced minimum 75% coverage threshold in CI
+- Coverage configuration with .coveragerc
+
+### Phase 5: SHAP Explanations (v1.2.0)
+- `/api/v1/explain` endpoint for model interpretability
+- Returns top 5 features influencing predictions
+- Shows SHAP values and impact direction
+- Fast response time (~40-80ms)
 
 ---
 
 ## 🎯 Current State
 
 **Repository:** ghislaindelabie/oc5-deploy-ml
-**Main Branch:** Deployed and working
+**Current Version:** v1.2.0
+**Main Branch:** Clean, all features merged
 **Live Deployment:** Fully functional on HF Spaces
-**All PRs:** Merged (clean state)
+**Test Suite:** 75 tests passing, 76.68% coverage
+**Database:** Integrated with Supabase PostgreSQL
 
 ---
 
 ## 🚫 What Was NOT Implemented
 
-- **Database integration** (PostgreSQL - planned but skipped)
-- **Gradio UI** (basic placeholder exists, not integrated)
-- **SHAP explanations** (optional feature)
-- **API authentication** (documented but not implemented)
-- **Rate limiting** (intentionally skipped)
+- **Gradio UI** (not needed - Swagger UI provides interactive interface)
+- **API authentication** (public API for portfolio demonstration)
+- **Rate limiting** (intentionally skipped for demo purposes)
 
 ---
 

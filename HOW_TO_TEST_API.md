@@ -179,6 +179,54 @@ curl -X POST http://127.0.0.1:8000/api/v1/predict/batch \
   -d @test_batch.json | python -m json.tool
 ```
 
+### SHAP Explanation
+
+Get SHAP values explaining which features most influenced a prediction:
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/explain \
+  -H "Content-Type: application/json" \
+  -d @test_employee.json | python -m json.tool
+```
+
+Expected output:
+```json
+{
+    "top_features": [
+        {
+            "feature": "heure_supplementaires_Yes",
+            "shap_value": 0.1523,
+            "impact": "increases risk"
+        },
+        {
+            "feature": "nombre_heures_travailless",
+            "shap_value": 0.0892,
+            "impact": "increases risk"
+        },
+        {
+            "feature": "satisfaction_employee_environnement",
+            "shap_value": -0.0654,
+            "impact": "decreases risk"
+        },
+        {
+            "feature": "revenu_mensuel",
+            "shap_value": -0.0432,
+            "impact": "decreases risk"
+        },
+        {
+            "feature": "age",
+            "shap_value": 0.0321,
+            "impact": "increases risk"
+        }
+    ],
+    "metadata": {
+        "model_version": "xgb_enhanced_v1.0",
+        "explanation_time_ms": 45,
+        "timestamp": "2025-11-21T10:30:00Z"
+    }
+}
+```
+
 ---
 
 ## Method 3: Using Python Requests
@@ -224,6 +272,13 @@ employee_data = {
 
 response = requests.post(
     f"{BASE_URL}/api/v1/predict",
+    json=employee_data
+)
+print(json.dumps(response.json(), indent=2))
+
+# SHAP explanation
+response = requests.post(
+    f"{BASE_URL}/api/v1/explain",
     json=employee_data
 )
 print(json.dumps(response.json(), indent=2))
@@ -326,6 +381,7 @@ pip install -e .
 - [ ] Model info shows correct version
 - [ ] Single prediction returns valid result
 - [ ] Batch prediction handles multiple employees
+- [ ] SHAP explanation returns top 5 features with impacts
 - [ ] Invalid input returns 422 error
 - [ ] Swagger UI loads and works
 - [ ] All automated tests pass
