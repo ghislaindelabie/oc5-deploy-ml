@@ -221,12 +221,12 @@ async def predict_single(
                     features_snapshot=employee_data
                 )
 
-                await db.commit()
+                # Commit/rollback handled by get_db() dependency
                 logger.debug(f"Logged prediction to database: request_id={api_request.id}")
             except Exception as db_error:
                 logger.error(f"Failed to log to database: {db_error}")
                 # Don't fail the request if database logging fails
-                await db.rollback()
+                # Rollback handled by get_db() dependency
 
         # Build response
         return PredictionResponse(
@@ -331,12 +331,12 @@ async def predict_batch(
                         features_snapshot=employee_data
                     )
 
-                await db.commit()
+                # Commit/rollback handled by get_db() dependency
                 logger.debug(f"Logged batch predictions to database: request_id={api_request.id}, count={len(predictions)}")
             except Exception as db_error:
                 logger.error(f"Failed to log batch to database: {db_error}")
                 # Don't fail the request if database logging fails
-                await db.rollback()
+                # Rollback handled by get_db() dependency
 
         # Build response
         prediction_items = []

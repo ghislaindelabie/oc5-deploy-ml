@@ -153,19 +153,15 @@ For PR to main, add these **GitHub Secrets** (not environment variables) to your
 
 1. Go to: **Settings → Secrets and variables → Actions → "New repository secret"**
 
-2. Add two secrets:
+2. Add the database secret:
 
-   **Secret #1:**
    ```
    Name:  OC5_DATABASE_URL
    Value: postgresql+asyncpg://postgres.xxxx:PASSWORD@aws-0-xx.pooler.supabase.com:5432/postgres
    ```
 
-   **Secret #2:**
-   ```
-   Name:  OC5_DIRECT_URL
-   Value: postgresql+asyncpg://postgres.xxxx:PASSWORD@aws-0-xx.pooler.supabase.com:5432/postgres
-   ```
+   > **Note:** As of v1.0.2, we use a single `OC5_DATABASE_URL` for both the application and migrations.
+   > The legacy `OC5_DIRECT_URL` is no longer needed.
 
 #### GitHub Secrets Security
 
@@ -220,7 +216,7 @@ pytest -m database
 
 **Solution:** Check that GitHub secrets are configured correctly:
 - Go to Settings → Secrets and variables → Actions
-- Verify `OC5_DATABASE_URL` and `OC5_DIRECT_URL` are set
+- Verify `OC5_DATABASE_URL` is set
 
 ## Summary
 
