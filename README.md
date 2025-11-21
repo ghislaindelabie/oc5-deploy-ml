@@ -19,6 +19,12 @@ This project implements a complete machine learning pipeline for predicting empl
 - CI/CD pipeline with GitHub Actions
 - Deployment to Hugging Face Spaces
 
+## Documentation
+
+📄 **[Project Documentation (PDF)](./OC5%20-%20Déployez%20un%20modèle%20ML.pdf)** - Complete technical documentation and presentation
+
+📊 **[Presentation Slides](./PRESENTATION_SLIDES.md)** - PowerPoint content in French (10-12 slides)
+
 ## Quickstart
 
 ```bash
